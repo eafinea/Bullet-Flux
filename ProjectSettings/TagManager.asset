@@ -13,6 +13,8 @@ TagManager:
   - Heat_Meter
   - Enemy
   - ArmouredEnemy
+  - MenuDoor
+  - ContinueDoor
   layers:
   - Default
   - TransparentFX
