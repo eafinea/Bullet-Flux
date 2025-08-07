@@ -50,6 +50,7 @@ public class GunStatsEditor : Editor
 
     private void ShowOverheatUI()
     {
+        // Overheat system properties
         EditorGUILayout.LabelField("Overheat System", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("maxHeat"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("currentHeat"));

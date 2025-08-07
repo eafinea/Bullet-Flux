@@ -18,19 +18,21 @@ public class ArmouredAI : MonoBehaviour
     
     [Header("Animation")]
     [SerializeField] private string speedParameterName = "speed";
+    [SerializeField] private string isMovingParameterName = "isMoving";
     [SerializeField] private bool useNormalizedSpeed = true;
+    [SerializeField] private bool enableAnimationDebug = false; // Debug toggle
 
     private NavMeshAgent agent;
     private Animator animator;
     private float lastShotTime;
     
-    // Animation parameter hashes for better performance
-    private int speedHash;
-    private int isMovingHash;
-    
     // Movement tracking
     private Vector3 lastPosition;
     private float currentSpeed;
+    
+    // Animation parameter validation
+    private bool hasSpeedParameter = false;
+    private bool hasIsMovingParameter = false;
 
     void Start()
     {
@@ -42,18 +44,59 @@ public class ArmouredAI : MonoBehaviour
         if (player == null)
             player = GameObject.FindWithTag("Player")?.transform;
             
-        // Cache animator parameter hashes
-        if (animator != null)
-        {
-            speedHash = Animator.StringToHash(speedParameterName);
-        }
-        else
-        {
-            Debug.LogWarning($"[ArmouredAI] {name}: No Animator found! Animation will not work.");
-        }
+        // Validate animator parameters
+        ValidateAnimatorParameters();
         
         // Initialize position tracking
         lastPosition = transform.position;
+    }
+
+    private void ValidateAnimatorParameters()
+    {
+        if (animator == null)
+        {
+            Debug.LogWarning($"[ArmouredAI] {name}: No Animator found! Animation will not work.");
+            return;
+        }
+
+        // Check if the speed parameter exists
+        if (HasAnimatorParameter(speedParameterName, AnimatorControllerParameterType.Float))
+        {
+            hasSpeedParameter = true;
+            if (enableAnimationDebug)
+                Debug.Log($"[ArmouredAI] {name}: Found speed parameter '{speedParameterName}'");
+        }
+        else
+        {
+            hasSpeedParameter = false;
+            Debug.LogWarning($"[ArmouredAI] {name}: Speed parameter '{speedParameterName}' not found in Animator!");
+        }
+
+        // Check if the isMoving parameter exists
+        if (HasAnimatorParameter(isMovingParameterName, AnimatorControllerParameterType.Bool))
+        {
+            hasIsMovingParameter = true;
+            if (enableAnimationDebug)
+                Debug.Log($"[ArmouredAI] {name}: Found isMoving parameter '{isMovingParameterName}'");
+        }
+        else
+        {
+            hasIsMovingParameter = false;
+            Debug.LogWarning($"[ArmouredAI] {name}: IsMoving parameter '{isMovingParameterName}' not found in Animator!");
+        }
+    }
+
+    private bool HasAnimatorParameter(string paramName, AnimatorControllerParameterType paramType)
+    {
+        if (animator == null || animator.runtimeAnimatorController == null)
+            return false;
+
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.name == paramName && param.type == paramType)
+                return true;
+        }
+        return false;
     }
 
     void Update()
@@ -87,31 +130,56 @@ public class ArmouredAI : MonoBehaviour
         Vector3 deltaPosition = currentPosition - lastPosition;
         currentSpeed = deltaPosition.magnitude / Time.deltaTime;
         
-        // Update animator parameters
-        if (useNormalizedSpeed)
+        // Update speed parameter
+        if (hasSpeedParameter)
         {
-            // Normalize speed between 0 and 1 (0 = standing, 1 = max speed)
-            float normalizedSpeed = Mathf.Clamp01(currentSpeed / moveSpeed);
-            animator.SetFloat(speedHash, normalizedSpeed);
-        }
-        else
-        {
-            // Use raw speed value
-            animator.SetFloat(speedHash, currentSpeed);
+            try
+            {
+                if (useNormalizedSpeed)
+                {
+                    // Normalize speed between 0 and 1 (0 = standing, 1 = max speed)
+                    float normalizedSpeed = Mathf.Clamp01(currentSpeed / moveSpeed);
+                    animator.SetFloat(speedParameterName, normalizedSpeed);
+                    
+                    if (enableAnimationDebug)
+                        Debug.Log($"[ArmouredAI] {name}: Set speed to {normalizedSpeed:F2} (normalized)");
+                }
+                else
+                {
+                    // Use raw speed value
+                    animator.SetFloat(speedParameterName, currentSpeed);
+                    
+                    if (enableAnimationDebug)
+                        Debug.Log($"[ArmouredAI] {name}: Set speed to {currentSpeed:F2} (raw)");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ArmouredAI] {name}: Error setting speed parameter: {e.Message}");
+                hasSpeedParameter = false; // Disable to prevent spam
+            }
         }
         
-        // Set boolean for whether AI is moving
-        bool isMoving = currentSpeed > 0.1f; // Small threshold to avoid jitter
-        animator.SetBool(isMovingHash, isMoving);
+        // Update isMoving parameter if it exists
+        if (hasIsMovingParameter)
+        {
+            try
+            {
+                bool isMoving = currentSpeed > 0.1f; // Small threshold to avoid jitter
+                animator.SetBool(isMovingParameterName, isMoving);
+                
+                if (enableAnimationDebug)
+                    Debug.Log($"[ArmouredAI] {name}: Set isMoving to {isMoving}");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ArmouredAI] {name}: Error setting isMoving parameter: {e.Message}");
+                hasIsMovingParameter = false; // Disable to prevent spam
+            }
+        }
         
         // Update last position for next frame
         lastPosition = currentPosition;
-        
-        // Debug info
-        if (Application.isEditor)
-        {
-            Debug.Log($"[ArmouredAI] {name}: Speed = {currentSpeed:F2}, Normalized = {(currentSpeed/moveSpeed):F2}, IsMoving = {isMoving}");
-        }
     }
 
     private bool HasLOS()
@@ -139,17 +207,38 @@ public class ArmouredAI : MonoBehaviour
     // Method to manually set animation parameters (useful for testing)
     public void SetAnimationSpeed(float speed)
     {
-        if (animator != null)
+        if (animator != null && hasSpeedParameter)
         {
-            animator.SetFloat(speedHash, speed);
+            try
+            {
+                animator.SetFloat(speedParameterName, speed);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ArmouredAI] {name}: Error in SetAnimationSpeed: {e.Message}");
+            }
         }
     }
     
     public void SetAnimationMoving(bool moving)
     {
-        if (animator != null)
+        if (animator != null && hasIsMovingParameter)
         {
-            animator.SetBool(isMovingHash, moving);
+            try
+            {
+                animator.SetBool(isMovingParameterName, moving);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ArmouredAI] {name}: Error in SetAnimationMoving: {e.Message}");
+            }
         }
+    }
+
+    // Method to refresh parameter validation (useful if animator controller changes)
+    [ContextMenu("Refresh Animator Parameters")]
+    public void RefreshAnimatorParameters()
+    {
+        ValidateAnimatorParameters();
     }
 }

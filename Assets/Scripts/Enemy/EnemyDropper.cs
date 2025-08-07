@@ -99,8 +99,7 @@ public class EnemyDropper : MonoBehaviour
             return hit.point + Vector3.up * 0.1f;
         }
         
-        // Fallback to original position if no ground found
-        return transform.position;
+        return transform.position + Vector3.up * 0.1f;
     }
 
     private void ConfigureDroppedPowerup(GameObject droppedItem)

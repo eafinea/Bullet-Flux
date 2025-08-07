@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using FMODUnity;
+using UnityEngine.UI;
 
 [System.Serializable]
 public enum PowerupType
@@ -36,13 +38,26 @@ public class Powerup : MonoBehaviour
     [SerializeField] private bool onlyExpireIfNotReusable = true;
     [SerializeField] private float warningTime = 10f;
     
-    [Header("Visual & Audio")]
-    [SerializeField] private GameObject pickupEffect;
-    [SerializeField] private AudioClip pickupSound;
+    [Header("Visual")]
     [SerializeField] private float rotationSpeed = 50f;
     [SerializeField] private float bobSpeed = 2f;
     [SerializeField] private float bobHeight = 0.5f;
-    
+
+    [Header("Pickup Flash Effect")]
+    [SerializeField] private string flashOverlayName = "PickupEffect";
+    [SerializeField] private float flashDuration = 0.5f;
+    [SerializeField] private float flashFadeSpeed = 4f;
+    [SerializeField] private Color bounceColor = Color.yellow;
+    [SerializeField] private Color dotColor = Color.magenta;
+    [SerializeField] private Color slowColor = Color.blue;
+    [SerializeField] private Color weaponColor = Color.red;
+
+    // Flash effect variables
+    private Image flashOverlay;
+    private Color originalFlashColor;
+    private bool isFlashing = false;
+    private Coroutine flashCoroutine;
+
     [Header("Expiration Visual Effects")]
     [SerializeField] private bool enableWarningEffects = true;
     [SerializeField] private float blinkSpeed = 3f;
@@ -53,7 +68,9 @@ public class Powerup : MonoBehaviour
     
     [Header("Debug")]
     [SerializeField] private bool debugRendererSearch = false;
-    
+
+    private EventReference pickupSound;
+
     private static readonly BulletEffectType[] availableEffects = 
     {
         BulletEffectType.Bounce,
@@ -84,6 +101,8 @@ public class Powerup : MonoBehaviour
     
     // Enhanced renderer detection
     private Renderer[] allRenderers;
+
+    private BulletEffectType lastAppliedEffect = BulletEffectType.Bounce;
 
     public PowerupType GetPowerupType()
     {
@@ -128,6 +147,12 @@ public class Powerup : MonoBehaviour
     // Enhanced Start method with improved renderer detection
     private void Start()
     {
+        // Initialize pickup sound and effect
+        pickupSound = FMODEvents.instance.pickupSound;
+
+        // Find the flash overlay Image
+        FindFlashOverlay();
+
         // Record spawn time for expiration tracking
         spawnTime = Time.time;
         
@@ -152,6 +177,51 @@ public class Powerup : MonoBehaviour
         
         // Start expiration timer if enabled
         StartExpirationTimer();
+    }
+
+    private void FindFlashOverlay()
+    {
+        // Method 1: Check if PlayerUI has pickupEffect already assigned
+        PlayerUI playerUI = FindFirstObjectByType<PlayerUI>();
+        if (playerUI != null && playerUI.pickupEffect != null)
+        {
+            // Get Image component directly from the pickupEffect GameObject
+            flashOverlay = playerUI.pickupEffect.GetComponent<Image>();
+            if (flashOverlay != null)
+            {
+                originalFlashColor = flashOverlay.color;
+                Debug.Log($"Found flash overlay via PlayerUI.pickupEffect: {flashOverlay.name}");
+                return;
+            }
+            
+            // Try getting Image from children if not directly on the GameObject
+            flashOverlay = playerUI.pickupEffect.GetComponentInChildren<Image>();
+            if (flashOverlay != null)
+            {
+                originalFlashColor = flashOverlay.color;
+                Debug.Log($"Found flash overlay in children of PlayerUI.pickupEffect: {flashOverlay.name}");
+                return;
+            }
+        }
+
+        // Method 2: Fallback - search by name (including inactive objects)
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas != null)
+        {
+            Image[] images = canvas.GetComponentsInChildren<Image>(true);
+            foreach (var img in images)
+            {
+                if (img.name.Equals(flashOverlayName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    flashOverlay = img;
+                    originalFlashColor = flashOverlay.color;
+                    Debug.Log($"Found flash overlay by name: {img.name} (was inactive: {!img.gameObject.activeInHierarchy})");
+                    return;
+                }
+            }
+        }
+        
+        Debug.LogError($"[Powerup] {name}: Could not find flash overlay! Make sure PlayerUI.pickupEffect is assigned in the Inspector and has an Image component, or there's an Image named '{flashOverlayName}' in the Canvas hierarchy.");
     }
 
     private void FindRenderers()
@@ -238,11 +308,12 @@ public class Powerup : MonoBehaviour
             float bobTime = Time.time * bobSpeed + bobOffset;
             float newY = startPosition.y + Mathf.Sin(bobTime) * bobHeight;
             
-            // Ensure we never go below ground
+            // Ensure never go below ground
             newY = Mathf.Max(newY, 0.1f);
             
             transform.position = new Vector3(startPosition.x, newY, startPosition.z);
         }
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -255,12 +326,30 @@ public class Powerup : MonoBehaviour
                 // Stop expiration timer when picked up
                 StopExpirationTimer();
                 
-                // Play pickup effects
-                PlayPickupEffects();
+                // Play pickup sound
+                PlayPickupSound();
+                
+                // Trigger flash effect via PlayerUI (NEW APPROACH)
+                TriggerPickupFlashViaUI();
                 
                 // Handle powerup state after successful pickup
                 HandlePostPickup();
             }
+        }
+    }
+
+    private void TriggerPickupFlashViaUI()
+    {
+        // Find PlayerUI and delegate the flash effect to it
+        PlayerUI playerUI = FindFirstObjectByType<PlayerUI>();
+        if (playerUI != null)
+        {
+            Color flashColor = GetFlashColor();
+            playerUI.TriggerPickupFlash(flashColor, flashDuration, flashFadeSpeed);
+        }
+        else
+        {
+            Debug.LogWarning($"[Powerup] {name}: Could not find PlayerUI to trigger flash effect!");
         }
     }
 
@@ -570,6 +659,9 @@ public class Powerup : MonoBehaviour
                 effectToApply = specificEffect;
             }
 
+            // Store the applied effect for flash color
+            lastAppliedEffect = effectToApply;
+            
             weaponManager.ApplyBulletEffect(effectToApply, effectDuration);
             return true;
         }
@@ -580,17 +672,9 @@ public class Powerup : MonoBehaviour
         }
     }
 
-    private void PlayPickupEffects()
+    private void PlayPickupSound()
     {
-        if (pickupEffect != null)
-        {
-            Instantiate(pickupEffect, transform.position, transform.rotation);
-        }
-        
-        if (pickupSound != null)
-        {
-            AudioSource.PlayClipAtPoint(pickupSound, transform.position);
-        }
+        AudioManager.instance.PlayOneShot(pickupSound, transform.position);
     }
 
     // Configuration methods
@@ -698,5 +782,29 @@ public class Powerup : MonoBehaviour
         }
         
         StopExpirationTimer();
+    }
+
+    private Color GetFlashColor()
+    {
+        switch (powerupType)
+        {
+            case PowerupType.BulletEffect:
+                // Use the last applied effect instead of specificEffect
+                BulletEffectType effectForColor = randomizeEffect ? lastAppliedEffect : specificEffect;
+                return effectForColor switch
+                {
+                    BulletEffectType.Bounce => bounceColor,
+                    BulletEffectType.DamageOverTime => dotColor,
+                    BulletEffectType.Slow => slowColor,
+                    _ => bounceColor
+                };
+                
+            case PowerupType.ShotgunWeapon:
+            case PowerupType.SMGWeapon:
+                return weaponColor;
+                
+            default:
+                return Color.white;
+        }
     }
 }

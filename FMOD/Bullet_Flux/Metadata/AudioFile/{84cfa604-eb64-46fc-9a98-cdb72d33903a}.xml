@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{84cfa604-eb64-46fc-9a98-cdb72d33903a}">
+		<property name="assetPath">
+			<value>Music/RestPoint.wav</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>15.359999999999999</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{30692fc7-a31a-460c-ab8d-224124a5e852}</destination>
+		</relationship>
+	</object>
+</objects>

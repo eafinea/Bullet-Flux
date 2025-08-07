@@ -279,11 +279,11 @@ MonoBehaviour:
   - prefab: {fileID: 5462176098585848220, guid: 8b01e1f2dc0c7ea48b23a7f58e716c55, type: 3}
     chance: 0.4
   dropOnlyOne: 1
-  dropHeight: 0.5
-  groundCheckDistance: 10
+  dropHeight: 0
+  groundCheckDistance: 0
   groundLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 1800
 --- !u!1001 &4372123961073313657
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -326,7 +326,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4212853782842193938, guid: 73eca4979e269f845988216f548da6aa, type: 3}
       propertyPath: damage
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4212853782842193938, guid: 73eca4979e269f845988216f548da6aa, type: 3}
       propertyPath: totalShots
