@@ -1269,6 +1269,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af4c1950f685f534ab10133f37a0e714, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  arenaSceneName: Arena
+  mainMenuSceneName: Main Menu
+  useGameManager: 1
+  continuePrompt: {fileID: 0}
+  menuPrompt: {fileID: 0}
 --- !u!114 &789916588
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2596,6 +2601,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5aacc008d8faed438799bcd49280c47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  debugMode: 0
 --- !u!4 &1540057071
 Transform:
   m_ObjectHideFlags: 0
@@ -3731,6 +3737,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af4c1950f685f534ab10133f37a0e714, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  arenaSceneName: Arena
+  mainMenuSceneName: Main Menu
+  useGameManager: 1
+  continuePrompt: {fileID: 0}
+  menuPrompt: {fileID: 0}
 --- !u!114 &2082692577
 MonoBehaviour:
   m_ObjectHideFlags: 0

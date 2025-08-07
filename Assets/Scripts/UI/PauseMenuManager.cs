@@ -17,6 +17,10 @@ public class PauseMenuManager : MonoBehaviour
     [Header("Game Over Debug")]
     [SerializeField] private bool disableGameOver = false; // Debug option to prevent game over
     
+    [Header("Progress Management")]
+    [SerializeField] private bool clearProgressOnRetry = true;
+    [SerializeField] private bool useGameManager = true;
+    
     // State management
     private bool isPaused = false;
     private bool isGameOver = false;
@@ -24,6 +28,8 @@ public class PauseMenuManager : MonoBehaviour
     
     // Static instance for easy access
     public static PauseMenuManager Instance { get; private set; }
+    
+    private GameManager gameManager;
     
     private void Awake()
     {
@@ -38,6 +44,16 @@ public class PauseMenuManager : MonoBehaviour
             Debug.Log($"PauseMenuManager duplicate destroyed on GameObject: {gameObject.name}");
             Destroy(gameObject);
             return;
+        }
+        
+        if (useGameManager)
+        {
+            gameManager = FindFirstObjectByType<GameManager>();
+            if (gameManager == null)
+            {
+                Debug.LogWarning("[PauseMenuManager] GameManager not found! Falling back to direct scene loading.");
+                useGameManager = false;
+            }
         }
         
         // Setup UI
@@ -249,11 +265,17 @@ public class PauseMenuManager : MonoBehaviour
     {
         Debug.Log("Retrying game...");
         
+        if (clearProgressOnRetry && GameProgressManager.Instance != null)
+        {
+            Debug.Log("Clearing progress on retry...");
+            GameProgressManager.Instance.ClearProgress();
+        }
+        
         // Reset time scale before scene change
         Time.timeScale = 1f;
         
-        // Reload the arena scene
-        SceneManager.LoadScene("Arena");
+        // Load arena scene using preferred method
+        LoadScene("Arena");
         
         Debug.Log("Retrying game - reloading Arena scene");
     }
@@ -266,13 +288,27 @@ public class PauseMenuManager : MonoBehaviour
         Time.timeScale = 1f;
         
         // Load main menu scene
-        SceneManager.LoadScene("Main Menu");
+        LoadScene("Main Menu");
         
         // Ensure cursor is visible in main menu
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
         Debug.Log("Returning to Main Menu");
+    }
+    
+    private void LoadScene(string sceneName)
+    {
+        if (useGameManager && gameManager != null)
+        {
+            Debug.Log($"[PauseMenuManager] Using GameManager to load scene: {sceneName}");
+            gameManager.GoToSpecificScene(sceneName);
+        }
+        else
+        {
+            Debug.Log($"[PauseMenuManager] Using direct scene loading for: {sceneName}");
+            SceneManager.LoadScene(sceneName);
+        }
     }
     
     // Public properties for external access

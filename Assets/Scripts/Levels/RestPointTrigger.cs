@@ -13,6 +13,7 @@ public class RestPointTrigger : MonoBehaviour
     [Header("Loading Settings")]
     [SerializeField] private bool useAsyncLoading = true;
     [SerializeField] private float loadingDelay = 0.1f;
+    [SerializeField] private bool useGameManager = true;
     
     [Header("Debug")]
     [SerializeField] private bool debugMode = true;
@@ -21,6 +22,7 @@ public class RestPointTrigger : MonoBehaviour
 
     private Collider triggerCollider;
     private bool isLoading = false;
+    private GameManager gameManager;
 
     private void Awake()
     {
@@ -28,6 +30,16 @@ public class RestPointTrigger : MonoBehaviour
         if (triggerCollider != null)
         {
             triggerCollider.isTrigger = true;
+        }
+        
+        if (useGameManager)
+        {
+            gameManager = FindFirstObjectByType<GameManager>();
+            if (gameManager == null && debugMode)
+            {
+                Debug.LogWarning("[RestPointTrigger] GameManager not found! Falling back to direct scene loading.");
+                useGameManager = false;
+            }
         }
         
         // Validate scene exists at startup
@@ -43,98 +55,98 @@ public class RestPointTrigger : MonoBehaviour
         {
             if (debugMode)
             {
-                Debug.Log($"[RestPointTrigger] Player entered rest point trigger. Loading scene: {restPointSceneName}");
+                Debug.Log($"[RestPointTrigger] Player entered rest point trigger. Current TimeScale: {Time.timeScale}");
+                Debug.Log($"[RestPointTrigger] Loading scene: {restPointSceneName}");
             }
 
             // Prevent multiple triggers
             isLoading = true;
 
-            // Notify the wave manager
+            StopAllGameSystems();
+
             OnPlayerEntered?.Invoke();
 
-            // Load rest point scene with delay and validation
-            StartCoroutine(LoadRestPointSceneCoroutine());
+            LoadSceneImmediately();
         }
     }
 
-    private IEnumerator LoadRestPointSceneCoroutine()
+    private void StopAllGameSystems()
     {
-        // Optional delay to ensure all systems are notified
-        if (loadingDelay > 0f)
+        float originalTimeScale = Time.timeScale;
+        Time.timeScale = 1f;
+        
+        if (debugMode)
         {
-            yield return new WaitForSeconds(loadingDelay);
+            Debug.Log($"[RestPointTrigger] TimeScale reset from {originalTimeScale} to {Time.timeScale}");
         }
 
-        // Validate scene exists before loading
-        if (!IsSceneInBuildSettings(restPointSceneName))
+        // Stop all coroutines in the scene
+        MonoBehaviour[] allMonoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+        foreach (var mb in allMonoBehaviours)
         {
-            Debug.LogError($"[RestPointTrigger] Scene '{restPointSceneName}' not found in Build Settings! Please add it to the build settings.");
-            isLoading = false;
-            yield break;
+            if (mb != this) // Don't stop our own coroutines
+            {
+                mb.StopAllCoroutines();
+            }
+        }
+
+        // Disable pause menu to prevent interference
+        if (PauseMenuManager.Instance != null)
+        {
+            PauseMenuManager.Instance.enabled = false;
+        }
+
+        // Disable wave manager to stop spawning
+        WaveManager waveManager = FindFirstObjectByType<WaveManager>();
+        if (waveManager != null)
+        {
+            waveManager.enabled = false;
         }
 
         if (debugMode)
         {
-            Debug.Log($"[RestPointTrigger] Starting scene load: {restPointSceneName}");
+            Debug.Log("[RestPointTrigger] All game systems stopped");
+        }
+    }
+
+    private void LoadSceneImmediately()
+    {
+        // Validate scene exists
+        if (!IsSceneInBuildSettings(restPointSceneName))
+        {
+            Debug.LogError($"[RestPointTrigger] Scene '{restPointSceneName}' not found in Build Settings!");
+            return;
         }
 
-            // Handle async loading without try-catch around yield statements
-        if (useAsyncLoading)
+        try
         {
-            AsyncOperation asyncLoad = null;
-            
-            // Start async loading (can be in try-catch since no yield here)
-            try
+            if (debugMode)
             {
-                asyncLoad = SceneManager.LoadSceneAsync(restPointSceneName);
+                Debug.Log($"[RestPointTrigger] Loading scene immediately: {restPointSceneName}");
             }
-            catch (System.Exception e)
+
+            // Use GameManager method for Rest Point transition
+            if (useGameManager && gameManager != null)
             {
-                Debug.LogError($"[RestPointTrigger] Error starting async load for scene '{restPointSceneName}': {e.Message}");
-                isLoading = false;
-                yield break;
-            }
-            
-            if (asyncLoad != null)
-            {
-                // Wait for the scene to load (yield statements outside try-catch)
-                while (!asyncLoad.isDone)
-                {
-                    if (debugMode)
-                    {
-                        Debug.Log($"[RestPointTrigger] Loading progress: {asyncLoad.progress * 100:F1}%");
-                    }
-                    yield return null;
-                }
-                
-                if (debugMode)
-                {
-                    Debug.Log($"[RestPointTrigger] Scene '{restPointSceneName}' loaded successfully!");
-                }
+                gameManager.GoToRestPoint();
             }
             else
             {
-                Debug.LogError($"[RestPointTrigger] Failed to start async loading for scene '{restPointSceneName}'");
-                isLoading = false;
+                SceneManager.LoadScene(restPointSceneName);
+            }
+
+            if (debugMode)
+            {
+                Debug.Log($"[RestPointTrigger] Scene load initiated for: {restPointSceneName}");
             }
         }
-        else
+        catch (System.Exception e)
         {
-            // Use synchronous loading (no yield statements here)
-            try
-            {
-                SceneManager.LoadScene(restPointSceneName);
-                
-                if (debugMode)
-                {
-                    Debug.Log($"[RestPointTrigger] Scene '{restPointSceneName}' loaded synchronously!");
-                }
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"[RestPointTrigger] Error loading scene '{restPointSceneName}': {e.Message}");
-                isLoading = false;
-            }
+            Debug.LogError($"[RestPointTrigger] Error loading scene '{restPointSceneName}': {e.Message}");
+            
+            // Reset systems if loading failed
+            Time.timeScale = 1f;
+            isLoading = false;
         }
     }
 
@@ -173,7 +185,8 @@ public class RestPointTrigger : MonoBehaviour
         {
             Debug.Log("[RestPointTrigger] Manual scene load triggered");
             OnPlayerEntered?.Invoke();
-            StartCoroutine(LoadRestPointSceneCoroutine());
+            StopAllGameSystems();
+            LoadSceneImmediately();
         }
     }
 
@@ -197,6 +210,11 @@ public class RestPointTrigger : MonoBehaviour
             {
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawSphere(transform.position + Vector3.up, 0.5f);
+            }
+            if (useGameManager && gameManager != null)
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawWireSphere(transform.position + Vector3.up * 2f, 0.3f);
             }
         }
     }
@@ -229,5 +247,39 @@ public class RestPointTrigger : MonoBehaviour
     private void ContextResetLoadingState()
     {
         ResetLoadingState();
+    }
+
+    [ContextMenu("Find GameManager")]
+    private void FindGameManager()
+    {
+        gameManager = FindFirstObjectByType<GameManager>();
+        if (gameManager != null)
+        {
+            Debug.Log($"[RestPointTrigger] Found GameManager: {gameManager.gameObject.name}");
+        }
+        else
+        {
+            Debug.LogWarning("[RestPointTrigger] GameManager not found in scene!");
+        }
+    }
+
+    [ContextMenu("Check TimeScale")]
+    private void CheckTimeScale()
+    {
+        Debug.Log($"[RestPointTrigger] Current Time.timeScale: {Time.timeScale}");
+        Debug.Log($"[RestPointTrigger] PauseMenuManager.Instance exists: {PauseMenuManager.Instance != null}");
+        if (PauseMenuManager.Instance != null)
+        {
+            Debug.Log($"[RestPointTrigger] Is Paused: {PauseMenuManager.Instance.IsPaused}");
+            Debug.Log($"[RestPointTrigger] Is Game Over: {PauseMenuManager.Instance.IsGameOver}");
+        }
+    }
+
+    [ContextMenu("Force Load Rest Point")]
+    private void ForceLoadRestPoint()
+    {
+        Debug.Log("Force loading Rest Point scene...");
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Rest Point");
     }
 }

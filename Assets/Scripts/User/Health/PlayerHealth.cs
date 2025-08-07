@@ -21,6 +21,9 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     public float fadeSpeed;    // How fast it fades out
     private float durationTimer;
 
+    [Header("Progress Management")]
+    [SerializeField] private bool clearProgressOnDeath = true;
+
     private float lerpTimer;
 
     // Events
@@ -88,6 +91,14 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     {
         isDead = true;
         Debug.Log("=== PLAYER DEATH DETECTED ===");
+        
+        // Clear progress on death if enabled
+        if (clearProgressOnDeath && GameProgressManager.Instance != null)
+        {
+            Debug.Log("Clearing progress due to player death...");
+            GameProgressManager.Instance.ClearProgress();
+        }
+        
         Debug.Log("Triggering death event...");
         OnPlayerDied?.Invoke();
         Debug.Log("Death event invoked!");

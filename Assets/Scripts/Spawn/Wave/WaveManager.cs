@@ -82,7 +82,9 @@ public class WaveManager : MonoBehaviour
 
     private void CheckForSavedProgress()
     {
-        if (GameProgressManager.Instance != null && GameProgressManager.Instance.HasSavedProgress())
+        if (GameProgressManager.Instance != null && 
+            GameProgressManager.Instance.HasSavedProgress() && 
+            GameManager.ShouldRestoreProgress())
         {
             var progress = GameProgressManager.Instance.LoadProgress();
             if (progress != null)
@@ -93,7 +95,7 @@ public class WaveManager : MonoBehaviour
             }
         }
 
-        // No saved progress, start normally
+        // No saved progress or shouldn't restore, start normally
         StartCoroutine(RunWaves());
     }
 
@@ -253,10 +255,12 @@ public class WaveManager : MonoBehaviour
         Debug.Log("Player entered Rest Point trigger");
         isRestPointActive = false;
 
-        // Save progress again before scene transition
+        // Save progress with the the wave should start on when returning
         if (GameProgressManager.Instance != null)
         {
-            GameProgressManager.Instance.SaveProgress(currentWaveIndex + 1);
+            int nextWaveToStart = currentWaveIndex + 2;
+            GameProgressManager.Instance.SaveProgress(nextWaveToStart);
+            Debug.Log($"[WaveManager] Saved progress for next wave: {nextWaveToStart}");
         }
     }
 
