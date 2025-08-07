@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -20,7 +21,14 @@ public class PlayerUI : MonoBehaviour
     [SerializeField] private Image pistolIcon;          // Pistol weapon icon
     [SerializeField] private Image smgIcon;             // SMG weapon icon
     [SerializeField] private Image shotgunIcon;         // Shotgun weapon icon
+
+    [Header("Pickup Effects")]
+    public GameObject pickupEffect;   // Effect to play when picking up powerups
     
+    private Image flashOverlay;
+    private Color originalFlashColor;
+    private Coroutine flashCoroutine;
+
     [Header("Wave Indicator System")]
     [SerializeField] private Image frontEnemyBar;       // Front bar showing remaining enemies
     [SerializeField] private Image backEnemyBar;        // Back bar for smooth animation
@@ -82,6 +90,146 @@ public class PlayerUI : MonoBehaviour
 
         // Initialize wave display
         InitializeWaveDisplay();
+        
+        InitializeFlashOverlay();
+    }
+
+    private void InitializeFlashOverlay()
+    {
+        if (pickupEffect != null)
+        {
+            // Get Image component directly from the pickupEffect GameObject
+            flashOverlay = pickupEffect.GetComponent<Image>();
+            if (flashOverlay != null)
+            {
+                originalFlashColor = flashOverlay.color;
+                Debug.Log($"PlayerUI: Flash overlay initialized: {flashOverlay.name}");
+                
+                // Ensure it starts inactive with transparent color
+                flashOverlay.color = new Color(originalFlashColor.r, originalFlashColor.g, originalFlashColor.b, 0f);
+                flashOverlay.gameObject.SetActive(false);
+                return;
+            }
+            
+            // Try getting Image from children if not directly on the GameObject
+            flashOverlay = pickupEffect.GetComponentInChildren<Image>();
+            if (flashOverlay != null)
+            {
+                originalFlashColor = flashOverlay.color;
+                Debug.Log($"PlayerUI: Flash overlay found in children: {flashOverlay.name}");
+                
+                // Ensure it starts inactive with transparent color
+                flashOverlay.color = new Color(originalFlashColor.r, originalFlashColor.g, originalFlashColor.b, 0f);
+                flashOverlay.gameObject.SetActive(false);
+                return;
+            }
+        }
+
+        // Fallback - search by name in Canvas
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas != null)
+        {
+            Image[] images = canvas.GetComponentsInChildren<Image>(true);
+            foreach (var img in images)
+            {
+                if (img.name.Equals("PickupEffect", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    flashOverlay = img;
+                    originalFlashColor = flashOverlay.color;
+                    Debug.Log($"PlayerUI: Flash overlay found by name: {img.name}");
+                    
+                    // Ensure it starts inactive with transparent color
+                    flashOverlay.color = new Color(originalFlashColor.r, originalFlashColor.g, originalFlashColor.b, 0f);
+                    flashOverlay.gameObject.SetActive(false);
+                    return;
+                }
+            }
+        }
+        
+        Debug.LogError("PlayerUI: Could not find flash overlay! Make sure pickupEffect is assigned in the Inspector and has an Image component.");
+    }
+
+    // NEW: Public method for powerups to trigger flash effect
+    public void TriggerPickupFlash(Color flashColor, float flashDuration, float flashFadeSpeed)
+    {
+        if (flashOverlay == null)
+        {
+            Debug.LogError("PlayerUI: Flash overlay is null! Cannot perform flash effect.");
+            return;
+        }
+        
+        // Stop any existing flash
+        if (flashCoroutine != null)
+        {
+            StopCoroutine(flashCoroutine);
+        }
+        
+        // Start new flash effect
+        flashCoroutine = StartCoroutine(PickupFlashEffect(flashColor, flashDuration, flashFadeSpeed));
+    }
+
+    private IEnumerator PickupFlashEffect(Color flashColor, float flashDuration, float flashFadeSpeed)
+    {
+        Debug.Log("PlayerUI: Starting pickup flash effect...");
+        
+        // Set the flash color with low alpha for visibility
+        flashColor.a = 0.1f;
+        
+        // Ensure the flash overlay GameObject is active
+        if (!flashOverlay.gameObject.activeInHierarchy)
+        {
+            flashOverlay.gameObject.SetActive(true);
+        }
+        
+        // Set the flash color immediately
+        flashOverlay.color = flashColor;
+        
+        Debug.Log($"PlayerUI: Flash color set to {flashColor}, waiting {flashDuration} seconds...");
+        
+        // Wait for flash duration
+        yield return new WaitForSeconds(flashDuration);
+        
+        Debug.Log("PlayerUI: Starting fade back to original color...");
+        
+        // Fade back to original color
+        float fadeTime = 1f / flashFadeSpeed;
+        float elapsedTime = 0f;
+        
+        while (elapsedTime < fadeTime && flashOverlay != null)
+        {
+            // Check if the GameObject is still active
+            if (!flashOverlay.gameObject.activeInHierarchy)
+            {
+                Debug.LogWarning("PlayerUI: Flash overlay became inactive during fade!");
+                break;
+            }
+            
+            float t = elapsedTime / fadeTime;
+            
+            // Lerp from flash color back to original (transparent)
+            Color transparentOriginal = new Color(originalFlashColor.r, originalFlashColor.g, originalFlashColor.b, 0f);
+            Color currentColor = Color.Lerp(flashColor, transparentOriginal, t);
+            flashOverlay.color = currentColor;
+            
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        
+        // Ensure we end with the original transparent color and disable
+        if (flashOverlay != null && flashOverlay.gameObject != null)
+        {
+            flashOverlay.color = new Color(originalFlashColor.r, originalFlashColor.g, originalFlashColor.b, 0f);
+            
+            // Wait a brief moment before disabling
+            yield return new WaitForSeconds(0.1f);
+            
+            // Disable the flash overlay
+            flashOverlay.gameObject.SetActive(false);
+            
+            Debug.Log("PlayerUI: Flash effect completed and overlay disabled.");
+        }
+        
+        flashCoroutine = null;
     }
 
     private void Update()
@@ -101,6 +249,11 @@ public class PlayerUI : MonoBehaviour
         if (weaponManager != null)
         {
             weaponManager.OnWeaponSwitched -= OnWeaponChanged;
+        }
+
+        if (flashCoroutine != null)
+        {
+            StopCoroutine(flashCoroutine);
         }
     }
 

@@ -151,6 +151,7 @@ public class Gun : MonoBehaviour
 
         if (gunStats != null)
         {
+            AudioManager.instance.PlayOneShot(gunStats.ShootSound, transform.position);
             switch (gunStats.CurrentWeaponType)
             {
                 case GunStats.WeaponType.Shotgun:
@@ -307,6 +308,7 @@ public class Gun : MonoBehaviour
     private IEnumerator OverheatCooldown()
     {
         isOverheated = true;
+        AudioManager.instance.PlayOneShot(gunStats.OverheatSound, transform.position);
         SetOverheatAnimation(true);
 
         var weaponManager = transform.root.GetComponentInChildren<WeaponManager>();

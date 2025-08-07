@@ -13,9 +13,9 @@ public class StandardAI : MonoBehaviour
     public float moveSpeed = 4f;
 
     [Header("Shooting")]
-    public float shootInterval = 0.1f;     // time between shots
-    public float firingRange = 12f;      // only fire within this distance
-    public LayerMask obstacleMask;         // layers that block LOS
+    public float shootInterval = 0.1f;
+    public float firingRange = 12f;
+    public LayerMask obstacleMask;
 
     private NavMeshAgent agent;
     private float lastShotTime;

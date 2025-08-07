@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="MasterTagFolder" id="{2e030a9d-f78e-4ddc-b740-901d5af37ec0}">
+		<property name="name">
+			<value>Master</value>
+		</property>
+		<relationship name="items">
+			<destination>{83d946ef-ec7f-4c99-b95d-821e818fa894}</destination>
+			<destination>{b2f63ce2-c725-40f3-9e9f-3a178beca858}</destination>
+			<destination>{2d9de9c3-45eb-4609-99f0-f6b799681bf1}</destination>
+			<destination>{27b28581-9d58-4091-abf7-ad71295c404f}</destination>
+			<destination>{381175fc-63b8-4580-9b6e-b0eeff15a053}</destination>
+			<destination>{f795505e-daab-48b8-b3a3-36cabc7800a3}</destination>
+			<destination>{bc664766-c2bf-402b-8d68-28e3b0bdb77a}</destination>
+		</relationship>
+	</object>
+	<object class="Tag" id="{83d946ef-ec7f-4c99-b95d-821e818fa894}">
+		<property name="name">
+			<value>automation</value>
+		</property>
+	</object>
+	<object class="Tag" id="{b2f63ce2-c725-40f3-9e9f-3a178beca858}">
+		<property name="name">
+			<value>loop-region</value>
+		</property>
+	</object>
+	<object class="Tag" id="{2d9de9c3-45eb-4609-99f0-f6b799681bf1}">
+		<property name="name">
+			<value>multi-instrument</value>
+		</property>
+	</object>
+	<object class="Tag" id="{27b28581-9d58-4091-abf7-ad71295c404f}">
+		<property name="name">
+			<value>parameter</value>
+		</property>
+	</object>
+	<object class="Tag" id="{381175fc-63b8-4580-9b6e-b0eeff15a053}">
+		<property name="name">
+			<value>persistent</value>
+		</property>
+	</object>
+	<object class="Tag" id="{f795505e-daab-48b8-b3a3-36cabc7800a3}">
+		<property name="name">
+			<value>send</value>
+		</property>
+	</object>
+	<object class="Tag" id="{bc664766-c2bf-402b-8d68-28e3b0bdb77a}">
+		<property name="name">
+			<value>tempo-marker</value>
+		</property>
+	</object>
+</objects>

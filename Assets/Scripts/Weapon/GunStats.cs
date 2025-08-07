@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 [System.Serializable]
@@ -37,10 +38,16 @@ public class GunStats : MonoBehaviour
     [SerializeField] private ShootingMode shootingMode = ShootingMode.SemiAuto;
     [SerializeField] private float burstCooldown = 1f;
 
+    // Sound Properties
+    private EventReference shootSound;
+    private EventReference overheatSound;
+
     // Properties
     public WeaponType CurrentWeaponType => weaponType;
     public float Damage => damage;
     public float FireRate => fireRate;
+    public EventReference ShootSound => shootSound;
+    public EventReference OverheatSound => overheatSound;
 
     // Overheat properties
     public float MaxHeat => maxHeat;
@@ -64,6 +71,52 @@ public class GunStats : MonoBehaviour
 
     // Legacy properties for backward compatibility
     public bool IsShotgun => weaponType == WeaponType.Shotgun;
+
+    private void Start()
+    {
+        InitializeSounds();
+    }
+
+    private void InitializeSounds()
+    {
+        if (FMODEvents.instance == null)
+        {
+            Debug.LogError($"[GunStats] FMODEvents instance not found! Cannot initialize sounds for {weaponType}");
+            return;
+        }
+
+        AssignSoundsForWeaponType(weaponType);
+        
+        if (shootSound.IsNull)
+        {
+            Debug.LogWarning($"[GunStats] Shoot sound is null for weapon type {weaponType}");
+        }
+        else
+        {
+            Debug.Log($"[GunStats] Successfully assigned sounds for {weaponType}");
+        }
+    }
+
+    private void AssignSoundsForWeaponType(WeaponType type)
+    {
+        switch (type)
+        {
+            case WeaponType.Pistol:
+                shootSound = FMODEvents.instance.pistolShoot;
+                overheatSound = FMODEvents.instance.pistolOverheat;
+                break;
+                
+            case WeaponType.SMG:
+                shootSound = FMODEvents.instance.smgShoot;
+                overheatSound = new EventReference();
+                break;
+                
+            case WeaponType.Shotgun:
+                shootSound = FMODEvents.instance.shotgunShoot;
+                overheatSound = new EventReference();
+                break;
+        }
+    }
 
     // Heat management methods
     public void AddHeat(float amount)
@@ -119,6 +172,8 @@ public class GunStats : MonoBehaviour
     {
         weaponType = newWeaponType;
         
+        AssignSoundsForWeaponType(weaponType);
+        
         // Reset/initialize stats based on weapon type
         switch (weaponType)
         {
@@ -168,5 +223,9 @@ public class GunStats : MonoBehaviour
             default:
                 return true;
         }
+    }
+    public void RefreshSounds()
+    {
+        InitializeSounds();
     }
 }

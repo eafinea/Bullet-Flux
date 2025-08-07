@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{a4cd8271-2696-4e6b-b5a7-03990422e105}">
+		<property name="assetPath">
+			<value>SFX/Overheat.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>24</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>1.3919999999999999</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{30692fc7-a31a-460c-ab8d-224124a5e852}</destination>
+		</relationship>
+	</object>
+</objects>

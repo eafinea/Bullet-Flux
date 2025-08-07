@@ -1918,7 +1918,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 9133
+  m_VersionIndex: 9166
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -2106,7 +2106,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
@@ -2159,17 +2159,21 @@ MonoBehaviour:
   expirationTime: 15
   onlyExpireIfNotReusable: 1
   warningTime: 10
-  pickupEffect: {fileID: 0}
-  pickupSound: {fileID: 0}
   rotationSpeed: 50
   bobSpeed: 2
   bobHeight: 0.1
+  flashOverlayName: PickupEffect
+  flashDuration: 0.5
+  flashFadeSpeed: 4
+  bounceColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  dotColor: {r: 1, g: 0, b: 1, a: 1}
+  slowColor: {r: 0, g: 0, b: 1, a: 1}
+  weaponColor: {r: 1, g: 0, b: 0, a: 1}
   enableWarningEffects: 1
   blinkSpeed: 3
-  expirationEffect: {fileID: 0}
-  expirationSound: {fileID: 0}
   powerupRenderer: {fileID: 0}
   powerupCollider: {fileID: 0}
+  debugRendererSearch: 0
 --- !u!65 &7527214208331389982
 BoxCollider:
   m_ObjectHideFlags: 0

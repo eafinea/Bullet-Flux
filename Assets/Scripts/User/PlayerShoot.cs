@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using System.Diagnostics.Tracing;
 
 public class PlayerShoot : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class PlayerShoot : MonoBehaviour
     
     [Header("Weapon Switch Settings")]
     [SerializeField] private float weaponSwitchDelay = 0.5f; // Adjustable delay after weapon switch
-    
+
     private InputManager inputManager;
     private PlayerUI playerUI;
     private float lastBurstTime = 0f;

@@ -1,0 +1,152 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &320354377434536676
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8410047299138293205}
+  - component: {fileID: 8561138442119375437}
+  - component: {fileID: 1629776483325461239}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8410047299138293205
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 320354377434536676}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8561138442119375437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 320354377434536676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86c6556701af9e04380698b89f691b6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nonRigidbodyVelocity: 0
+  attenuationObject: {fileID: 0}
+--- !u!114 &1629776483325461239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 320354377434536676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33e3b8678b973b74fafe1db7b8988d2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <pistolShoot>k__BackingField:
+    Guid:
+      Data1: 1509586114
+      Data2: 1094255344
+      Data3: -735710847
+      Data4: -1225724699
+    Path: event:/Weapons/PistolShoot
+  <pistolOverheat>k__BackingField:
+    Guid:
+      Data1: -881505593
+      Data2: 1109891697
+      Data3: -297172841
+      Data4: -1864633526
+    Path: event:/Weapons/Overheat
+  <shotgunShoot>k__BackingField:
+    Guid:
+      Data1: -233884059
+      Data2: 1320678037
+      Data3: -842910051
+      Data4: 1981089741
+    Path: event:/Weapons/ShotgunShoot
+  <smgShoot>k__BackingField:
+    Guid:
+      Data1: -907754670
+      Data2: 1145927578
+      Data3: -1589837923
+      Data4: 801821055
+    Path: event:/Weapons/SMGShoot
+  <playerFootsteps>k__BackingField:
+    Guid:
+      Data1: 460423538
+      Data2: 1272457012
+      Data3: -1550411603
+      Data4: -46221532
+    Path: event:/Player/PlayerFootsteps
+  <playerJump>k__BackingField:
+    Guid:
+      Data1: 1193492473
+      Data2: 1107333988
+      Data3: -593029977
+      Data4: 198752158
+    Path: event:/Player/PlayerJump
+  <enemyFootsteps>k__BackingField:
+    Guid:
+      Data1: 460423538
+      Data2: 1272457012
+      Data3: -1550411603
+      Data4: -46221532
+    Path: event:/Player/PlayerFootsteps
+  <enemyFlying>k__BackingField:
+    Guid:
+      Data1: -389478058
+      Data2: 1216517815
+      Data3: 344110980
+      Data4: -90808502
+    Path: event:/Enemy/EnemyFlying
+  <UIButtonClick>k__BackingField:
+    Guid:
+      Data1: 1752093239
+      Data2: 1145564581
+      Data3: 147404962
+      Data4: -1260932808
+    Path: event:/Menu/Click
+  <UIButtonHover>k__BackingField:
+    Guid:
+      Data1: -98177410
+      Data2: 1303947066
+      Data3: 1109258381
+      Data4: 861190723
+    Path: event:/Menu/Hover
+  <UIMusic>k__BackingField:
+    Guid:
+      Data1: 1335133774
+      Data2: 1155685743
+      Data3: 794697126
+      Data4: -1110000118
+    Path: event:/Music/Menu
+  <restPointActivate>k__BackingField:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  <restPointMusic>k__BackingField:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
